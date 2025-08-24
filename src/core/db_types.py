@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import Annotated
+
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import mapped_column
 
 # Alias - Primary Key
-pk = Annotated[int, mapped_column(primary_key=True)]
+intpk = Annotated[int, mapped_column(primary_key=True)]
 
 # Aliases - Str
 str_50 = Annotated[str, mapped_column(String(50))]

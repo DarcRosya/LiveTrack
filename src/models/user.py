@@ -1,3 +1,38 @@
+from typing import List, TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
+from core.mixins import TimestampMixin
+from core.db_types import intpk, str_50, str_256
+
+
+if TYPE_CHECKING:
+    from .task import Task
+    from .habit import Habit
+    from .tag import Tag
+
+
+class User(Base, TimestampMixin):
+    __tablename__ = "users"
+
+    id: Mapped[intpk]
+    username: Mapped[str_50] = mapped_column(unique=True, index=True)
+    email: Mapped[str_256] = mapped_column(unique=True, index=True)
+    hash_password: Mapped[str]
+
+    is_active_account: Mapped[bool]
+
+    tasks: Mapped[List["Task"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    habits: Mapped[List["Habit"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    tags: Mapped[List["Tag"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
