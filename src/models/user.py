@@ -18,7 +18,7 @@ class User(Base, TimestampMixin):
     id: Mapped[intpk]
     username: Mapped[str_50] = mapped_column(unique=True, index=True)
     email: Mapped[str_256] = mapped_column(unique=True, index=True)
-    hash_password: Mapped[str]
+    password_in_hash: Mapped[str]
 
     is_active_account: Mapped[bool]
 

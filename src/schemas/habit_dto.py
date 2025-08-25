@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 from pydantic import BaseModel, computed_field
-from datetime import datetime, timezone
+from datetime import datetime
 
 from models.habit import HabitStatus
 
