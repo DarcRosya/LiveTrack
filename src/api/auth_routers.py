@@ -2,10 +2,16 @@ from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_async_session
-from src.services.auth_services import register_user, login_user
 from src.models.user import User
 from src.schemas.user_dto import UserCreate
 from src.schemas.auth_dto import RegisterForm, TokenInfo
+from src.services.auth_services import (
+    register_user, 
+    login_user, 
+    verify_user_email,
+    get_current_user_for_refresh,
+    get_refresh_token,
+)
 
 from .dependencies import validate_user
 
@@ -34,3 +40,22 @@ async def login(
     user: User = Depends(validate_user)
 ):
     return await login_user(user=user)
+
+
+@router.get("/verify")
+async def verify_email(
+    token: str, 
+    db: AsyncSession = Depends(get_async_session)
+):
+    return await verify_user_email(token=token, db=db)
+
+
+@router.post(
+    "/refresh", 
+    response_model=TokenInfo,
+    response_model_exclude_none=True,
+)
+async def refresh_token(
+    current_user: User = Depends(get_current_user_for_refresh),
+):
+    return await get_refresh_token(user=current_user)

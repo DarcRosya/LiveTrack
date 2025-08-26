@@ -2,16 +2,18 @@ from fastapi import BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_async_session
-# from src.config.email import send_verification_email
+from src.config.email import send_verification_email
 from src.models.user import User
 from src.schemas.auth_dto import TokenInfo
 from src.schemas.user_dto import UserCreate
 from src.security.jwt_tokens import (
     ACCESS_TOKEN_TYPE,
+    EMAIL_TOKEN_TYPE,
     REFRESH_TOKEN_TYPE,
     create_access_token,
-    # create_email_token,
+    create_email_token,
     create_refresh_token,
+    decode_jwt,
 )
 from src.api.dependencies import (
     get_current_token_payload,
@@ -21,6 +23,7 @@ from src.api.dependencies import (
 from src.queries.user_queries import (
     create_user_query, 
     select_user_by_username_or_email,
+    select_user_by_email,
 )
 
 
@@ -39,9 +42,9 @@ async def register_user(db: AsyncSession, user_in: UserCreate, background_tasks:
             )
     user = await create_user_query(db=db, user_in=user_in)
 
-    # token = create_email_token(user)
+    token = create_email_token(user)
 
-    # background_tasks.add_task(send_verification_email, user.email, token)
+    background_tasks.add_task(send_verification_email, user.email, token)
 
     return {"msg": "Registration successful. Please check your email to verify your account."}
 
@@ -53,6 +56,31 @@ async def login_user(user: User) -> TokenInfo:
     return TokenInfo(
         access_token=access_token,
         refresh_token=refresh_token
+    )
+
+async def verify_user_email(token: str, db: AsyncSession) -> dict:
+    payload = decode_jwt(token)
+    
+    await validate_token_type(payload, EMAIL_TOKEN_TYPE)
+
+    email = payload["sub"]
+    user = await select_user_by_email(db=db, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_active_account = True
+    await db.commit()
+
+    return {"msg": "Email verified successfully"}
+
+
+async def get_refresh_token(user: User) -> TokenInfo:
+    new_access_token = create_access_token(user)
+    new_refresh_token = create_refresh_token(user)
+
+    return TokenInfo(
+        access_token=new_access_token,
+        refresh_token=new_refresh_token,  
     )
 
 

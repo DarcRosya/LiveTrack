@@ -39,15 +39,15 @@ def create_refresh_token(user: User) -> str:
     )
 
 
-# def create_email_token(user: User) -> str:
-#     jwt_payload = {
-#         "sub": user.email
-#     }
-#     return create_jwt(
-#         token_type=EMAIL_TOKEN_TYPE,
-#         token_data=jwt_payload,
-#         expire_minutes=settings.auth.EMAIL_TOKEN_EXPIRE_MINUTES, 
-#     )
+def create_email_token(user: User) -> str:
+    jwt_payload = {
+        "sub": user.email
+    }
+    return create_jwt(
+        token_type=EMAIL_TOKEN_TYPE,
+        token_data=jwt_payload,
+        expire_minutes=settings.auth.EMAIL_TOKEN_EXPIRE_MINUTES, 
+    )
 
 
 def create_jwt(

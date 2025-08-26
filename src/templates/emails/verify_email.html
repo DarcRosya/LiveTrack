@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Confirmation</title>
+</head>
+<body style="font-family: Arial, sans-serif; text-align: center; color: #333; padding: 20px;">
+
+    <div style="max-width: 600px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; padding: 40px;">
+        <h1 style="color: #0d82d4;">Confirm your email address</h1>
+        <p style="font-size: 16px;">
+            Hello! Please click the button below to complete your registration in our app.
+        </p>
+        <a href="{{ verification_link }}" 
+           style="display: inline-block; 
+                  padding: 15px 25px; 
+                  margin: 20px 0; 
+                  font-size: 18px; 
+                  color: #fff; 
+                  background-color: #0d82d4; 
+                  border-radius: 5px; 
+                  text-decoration: none;">
+            Confirm Email
+        </a>
+        <p style="font-size: 14px; color: #777;">
+            If you have not registered, please disregard this email.
+        </p>
+    </div>
+
+</body>
+</html>
