@@ -1,8 +1,8 @@
 from typing import Annotated
+
 from fastapi import Depends, Form, HTTPException, status
-from jwt import InvalidTokenError, PyJWTError
+from jwt import InvalidTokenError
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from asyncpg.exceptions import ProgrammingError
 
@@ -61,17 +61,21 @@ async def validate_token_type(payload: dict, token_type: str) -> None:
 
 
 async def get_user_by_token_sub(payload: dict, db: AsyncSession) -> User:
+    if not (sub := payload.get("sub")):
+        raise HTTPException(status_code=401, detail="Invalid token: sub is missing")
     try:
-        user_id = int(payload.get("sub"))
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
-    except (ValueError, PyJWTError):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        user_id = int(sub)
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid token: sub is not an integer")
 
-    result = await db.execute(
-        select(User).options(selectinload(User.tasks)).filter(User.id == user_id)
-    )
+    query = select(User).filter(User.id == user_id)
+    result = await db.execute(query)
     user = result.scalar_one_or_none()
+
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="User not found"
+        )
+    
     return user

@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import SecretStr, PostgresDsn
+from pydantic import EmailStr, SecretStr, PostgresDsn
 
 # --- Embedded models for logical organization of settings ---
 
@@ -32,6 +32,19 @@ class AuthSettings(BaseSettings):
     EMAIL_TOKEN_EXPIRE_MINUTES: int
 
 
+class EmailSettings(BaseSettings):
+    """Stores all environment variables related to Email settings"""
+    MAIL_USERNAME: EmailStr
+    MAIL_PASSWORD: SecretStr
+    MAIL_FROM: EmailStr
+    MAIL_PORT: int = 465
+    MAIL_SERVER: SecretStr
+
+
+class AppSettings(BaseSettings):
+    CLIENT_BASE_URL: str = "http://localhost:3000"
+
+
 class Settings(BaseSettings):
     """
     The main class aggregator, which is the sole source of configuration for the entire application.
@@ -40,8 +53,12 @@ class Settings(BaseSettings):
     debug_mode: bool = False
 
     # Embedded settings are loaded automatically thanks to Pydantic🙏
-    db: DatabaseSettings
-    auth: AuthSettings
+    db: DatabaseSettings = DatabaseSettings()
+    auth: AuthSettings = AuthSettings()
+    email: EmailSettings = EmailSettings()
+    app: AppSettings = AppSettings()
+
+    CLIENT_BASE_URL: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from pydantic import EmailStr
 from sqlalchemy import or_, select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,13 +25,20 @@ async def create_user_query(db: AsyncSession, user_in: UserCreate) -> User:
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-async def select_user_by_username(db: AsyncSession, username: str) -> User | None:
-    query = (
-        select(User)
-        .filter(User.username == username)
-    )
+async def _get_user_by_attribute(db: AsyncSession, attribute: str, value: str | int) -> User | None:
+    """Универсальная функция для поиска пользователя по одному атрибуту."""
+    query = select(User).filter(getattr(User, attribute) == value)
     result = await db.execute(query)
     return result.scalar_one_or_none()
+
+async def select_user_by_id(db: AsyncSession, user_id: int) -> User | None:
+    return await _get_user_by_attribute(db, "id", user_id)
+
+async def select_user_by_username(db: AsyncSession, username: str) -> User | None:
+    return await _get_user_by_attribute(db, "username", username)
+
+async def select_user_by_email(db: AsyncSession, email: EmailStr) -> User | None:
+    return await _get_user_by_attribute(db, "email", email)
 
 
 async def select_user_by_username_or_email(db: AsyncSession, username: str, email: str) -> User | None:
