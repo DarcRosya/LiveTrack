@@ -1,0 +1,25 @@
+# Set default behavior for all files
+* text=auto eol=lf
+
+# Clearly indicate that these text files should always use LF
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.ini text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Explicitly specify that Windows-specific files should use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Indicate that binary files should not be touched
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
