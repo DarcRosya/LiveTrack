@@ -5,9 +5,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Enum, ForeignKey
 
 
-from core.database import Base
-from core.mixins import TimestampMixin
-from core.db_types import intpk, str_50, str_256, aware_datetime
+from src.core.database import Base
+from src.core.mixins import TimestampMixin
+from src.core.db_types import intpk, str_50, str_256, aware_datetime
 
 
 if TYPE_CHECKING:

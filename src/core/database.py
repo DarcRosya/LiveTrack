@@ -1,6 +1,7 @@
 from typing import Annotated, AsyncGenerator
 
 from fastapi import Depends
+from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
@@ -9,11 +10,7 @@ from src.config.settings import settings
 engine = create_async_engine(
     url=settings.db.DATABASE_URL,
     echo=settings.debug_mode, 
-    # Size of the pool of connections kept “warmed up”.
-    pool_size=10,
-    # Maximum number of additional connections that can be created beyond pool_size.
-    max_overflow=20        
-
+    poolclass=NullPool,       
 )
 
 async_session_factory = async_sessionmaker(engine, expire_on_commit=True)
