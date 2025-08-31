@@ -2,13 +2,13 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 import enum
 
-from sqlalchemy import Enum, ForeignKey, func
+from sqlalchemy import ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from core.database import Base
-from core.db_types import intpk, str_50, aware_datetime
-from core.mixins import TimestampMixin
+from src.core.database import Base
+from src.core.db_types import intpk, str_50, aware_datetime
+from src.core.mixins import TimestampMixin
 
 
 if TYPE_CHECKING:

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_async_session
@@ -15,9 +16,12 @@ from src.services.auth_services import (
 
 from .dependencies import validate_user
 
+http_bearer = HTTPBearer(auto_error=False)
+
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
+    dependencies=[Depends(http_bearer)],
 )
 
 

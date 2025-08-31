@@ -4,7 +4,7 @@ from fastapi import Depends, Form, HTTPException, status
 from jwt import InvalidTokenError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from asyncpg.exceptions import ProgrammingError
+from sqlalchemy.exc import ProgrammingError
 
 from src.core.database import get_async_session
 from src.models.user import User

@@ -1,9 +1,9 @@
 from typing import List, TYPE_CHECKING
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from core.database import Base
-from core.mixins import TimestampMixin
-from core.db_types import intpk, str_50, str_256
+from src.core.database import Base
+from src.core.mixins import TimestampMixin
+from src.core.db_types import intpk, str_50, str_256
 
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ class User(Base, TimestampMixin):
     email: Mapped[str_256] = mapped_column(unique=True, index=True)
     password_in_hash: Mapped[str]
 
-    is_active_account: Mapped[bool]
+    is_active_account: Mapped[bool] = mapped_column(default=False)
 
     tasks: Mapped[List["Task"]] = relationship(
         back_populates="user",

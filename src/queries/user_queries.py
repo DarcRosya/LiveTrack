@@ -12,7 +12,7 @@ async def create_user_query(db: AsyncSession, user_in: UserCreate) -> User:
     user = User(
         username=user_in.username,
         email=user_in.email,
-        hash_password=hash_password(user_in.password),
+        password_in_hash=hash_password(user_in.password),
     )
 
     try:
