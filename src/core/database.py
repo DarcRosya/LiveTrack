@@ -10,10 +10,11 @@ from src.config.settings import settings
 engine = create_async_engine(
     url=settings.db.DATABASE_URL,
     echo=settings.debug_mode, 
-    poolclass=NullPool,       
+    # pool_size=10,  # Можно настроить размер пула, если понадобится
+    # max_overflow=20,
 )
 
-async_session_factory = async_sessionmaker(engine, expire_on_commit=True)
+async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
 # Base class for all our ORM models.
 # SQLAlchemy uses it to collect metadata about tables.
