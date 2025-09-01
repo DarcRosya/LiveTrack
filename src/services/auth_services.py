@@ -1,9 +1,11 @@
+from typing import Callable, Coroutine
 from fastapi import BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database import get_async_session
+from src.core.database import DBSession
 from src.config.email import send_verification_email
 from src.models.user import User
+from src.queries.user_queries import user_repo
 from src.schemas.auth_dto import TokenInfo
 from src.schemas.user_dto import UserCreate
 from src.security.jwt_tokens import (
@@ -17,18 +19,11 @@ from src.security.jwt_tokens import (
 )
 from src.api.dependencies import (
     get_current_token_payload,
-    get_user_by_token_sub,
     validate_token_type,
 )
-from src.queries.user_queries import (
-    create_user_query, 
-    select_user_by_username_or_email,
-    select_user_by_email,
-)
-
 
 async def register_user(db: AsyncSession, user_in: UserCreate, background_tasks: BackgroundTasks) -> dict:
-    existing_user = await select_user_by_username_or_email(db, user_in.username, user_in.email)
+    existing_user = await user_repo.select_by_username_or_email(db, user_in.username, user_in.email)
     if existing_user:
         if existing_user.username == user_in.username:
             raise HTTPException(
@@ -40,7 +35,7 @@ async def register_user(db: AsyncSession, user_in: UserCreate, background_tasks:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered",
             )
-    user = await create_user_query(db=db, user_in=user_in)
+    user = await user_repo.create(db=db, user_in=user_in)
 
     token = create_email_token(user)
 
@@ -64,7 +59,7 @@ async def verify_user_email(token: str, db: AsyncSession) -> dict:
     await validate_token_type(payload, EMAIL_TOKEN_TYPE)
 
     email = payload["sub"]
-    user = await select_user_by_email(db=db, email=email)
+    user = await user_repo.select_by_email(db=db, email=email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -84,18 +79,34 @@ async def get_refresh_token(user: User) -> TokenInfo:
     )
 
 
+UserLoader = Callable[[DBSession, int], Coroutine[None, None, User | None]]
+
 class UserGetterFromToken:
-    def __init__(self, token_type: str):
+    def __init__(self, token_type: str, user_loader: UserLoader = user_repo.select_by_id):
         self.token_type = token_type
+        self.user_loader = user_loader
 
     async def __call__(
         self,
+        db: DBSession,
         payload: dict = Depends(get_current_token_payload),
-        db: AsyncSession = Depends(get_async_session),
     ):
         await validate_token_type(payload=payload, token_type=self.token_type)
-        return await get_user_by_token_sub(payload=payload, db=db)
-    
+
+        user_id = int(payload.get("sub"))
+
+        user = await self.user_loader(db=db, user_id=user_id)
+
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        
+        return user
 
 get_current_user = UserGetterFromToken(ACCESS_TOKEN_TYPE)
 get_current_user_for_refresh = UserGetterFromToken(REFRESH_TOKEN_TYPE)
+
+get_current_user_with_tasks = UserGetterFromToken(ACCESS_TOKEN_TYPE, user_loader=user_repo.select_with_tasks)
+get_current_user_with_habits = UserGetterFromToken(ACCESS_TOKEN_TYPE, user_loader=user_repo.select_with_habits)
+get_current_user_with_tags = UserGetterFromToken(ACCESS_TOKEN_TYPE, user_loader=user_repo.select_with_tags)
+
+get_current_user_with_all_data = UserGetterFromToken(ACCESS_TOKEN_TYPE, user_loader=user_repo.select_with_all_relations)
