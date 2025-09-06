@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.security import HTTPBearer
 
 from src.core.database import DBSession
@@ -49,9 +49,16 @@ async def get_user(
     response_description="List of tasks belonging to the current user"
 )
 async def get_user_tasks(
+    db: DBSession,
     current_user: User = Depends(get_current_user_with_tasks),
+    limit: int | None = Query(default=None, ge=1, le=3),
 ):
-    return current_user.tasks
+    return await user_repo.select_relation_with_limit(
+        db=db, 
+        current_user=current_user,
+        relation="tasks",
+        limit=limit,
+    )
 
 
 @router.get(
@@ -61,9 +68,16 @@ async def get_user_tasks(
     response_description="List of habits belonging to the current user"
 )
 async def get_user_habits(
+    db: DBSession,
     current_user: User = Depends(get_current_user_with_habits),
+    limit: int | None = Query(default=None, ge=1, le=3),
 ):
-    return current_user.habits
+    return await user_repo.select_relation_with_limit(
+        db=db, 
+        current_user=current_user,
+        relation="habits",
+        limit=limit,
+    )
 
 
 @router.get(
@@ -73,10 +87,16 @@ async def get_user_habits(
     response_description="List of tags belonging to the current user"
 )
 async def get_user_tags(
+    db: DBSession,
     current_user: User = Depends(get_current_user_with_tags),
+    limit: int | None = Query(default=None, ge=1, le=3),
 ):
-    return current_user.tags
-
+    return await user_repo.select_relation_with_limit(
+        db=db, 
+        current_user=current_user,
+        relation="tags",
+        limit=limit,
+    )
 
 @router.patch(
     "/me",
