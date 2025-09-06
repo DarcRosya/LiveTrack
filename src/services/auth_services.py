@@ -105,7 +105,7 @@ class UserGetterFromToken:
 get_current_user = UserGetterFromToken(ACCESS_TOKEN_TYPE)
 get_current_user_for_refresh = UserGetterFromToken(REFRESH_TOKEN_TYPE)
 
-get_current_user_with_tasks = UserGetterFromToken(ACCESS_TOKEN_TYPE, user_loader=user_repo.select_with_tasks)
+get_current_user_with_tasks_and_their_tags = UserGetterFromToken(ACCESS_TOKEN_TYPE, user_loader=user_repo.select_with_tasks_and_their_tags)
 get_current_user_with_habits = UserGetterFromToken(ACCESS_TOKEN_TYPE, user_loader=user_repo.select_with_habits)
 get_current_user_with_tags = UserGetterFromToken(ACCESS_TOKEN_TYPE, user_loader=user_repo.select_with_tags)
 
