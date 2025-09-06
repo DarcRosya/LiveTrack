@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 from pydantic import EmailStr
 from sqlalchemy import or_, select, update, delete as delete_query
 from sqlalchemy.orm import selectinload
@@ -50,6 +50,7 @@ class UserRepository:
         result = await db.execute(query)
         return result.scalar_one_or_none()
     
+    # -- SELECTIONLOAD SELECT
 
     async def select_with_tasks(self, db: AsyncSession, user_id: int) -> User | None:
         return await self._get_by_attribute_with_relation(db, "id", user_id, "tasks")
@@ -59,7 +60,30 @@ class UserRepository:
 
     async def select_with_tags(self, db: AsyncSession, user_id: int) -> User | None:
         return await self._get_by_attribute_with_relation(db, "id", user_id, "tags")
+    
+    # -- LIMIT SELECT
 
+    async def select_relation_with_limit(
+        self, 
+        db: AsyncSession, 
+        current_user: User, 
+        relation: str, 
+        limit: int | None = None
+    ):
+        if not hasattr(User, relation):
+            raise ValueError(f"User has no relation '{relation}'")
+
+        relation_model = getattr(User, relation).property.mapper.class_
+
+        if limit is None:
+            return getattr(current_user, relation)  # просто возвращаем все связанные объекты
+
+        query = select(relation_model).filter(relation_model.user_id == current_user.id).limit(limit)
+        result = await db.execute(query)
+        return result.scalars().all()
+
+    # -- FULL SELECT
+    
     async def select_with_all_relations(self, db: AsyncSession, user_id: int) -> User | None:
         """Retrieves a user with all their primary relationships (heavy version)."""
         query = (
@@ -116,6 +140,5 @@ class UserRepository:
         )
         result = await db.execute(query)
         return result.scalar_one_or_none()
-
 
 user_repo = UserRepository()
