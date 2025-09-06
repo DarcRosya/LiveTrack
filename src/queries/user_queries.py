@@ -52,8 +52,16 @@ class UserRepository:
     
     # -- SELECTIONLOAD SELECT
 
-    async def select_with_tasks(self, db: AsyncSession, user_id: int) -> User | None:
-        return await self._get_by_attribute_with_relation(db, "id", user_id, "tasks")
+    async def select_with_tasks_and_their_tags(self, db: AsyncSession, user_id: int) -> User | None:
+        query = (
+            select(User)
+            .filter(User.id == user_id)
+            .options(
+                selectinload(User.tasks).selectinload(Task.tags)
+            )
+        )
+        result = await db.execute(query)
+        return result.scalar_one_or_none()
 
     async def select_with_habits(self, db: AsyncSession, user_id: int) -> User | None:
         return await self._get_by_attribute_with_relation(db, "id", user_id, "habits")
@@ -61,27 +69,6 @@ class UserRepository:
     async def select_with_tags(self, db: AsyncSession, user_id: int) -> User | None:
         return await self._get_by_attribute_with_relation(db, "id", user_id, "tags")
     
-    # -- LIMIT SELECT
-
-    async def select_relation_with_limit(
-        self, 
-        db: AsyncSession, 
-        current_user: User, 
-        relation: str, 
-        limit: int | None = None
-    ):
-        if not hasattr(User, relation):
-            raise ValueError(f"User has no relation '{relation}'")
-
-        relation_model = getattr(User, relation).property.mapper.class_
-
-        if limit is None:
-            return getattr(current_user, relation)  # просто возвращаем все связанные объекты
-
-        query = select(relation_model).filter(relation_model.user_id == current_user.id).limit(limit)
-        result = await db.execute(query)
-        return result.scalars().all()
-
     # -- FULL SELECT
     
     async def select_with_all_relations(self, db: AsyncSession, user_id: int) -> User | None:
@@ -136,7 +123,7 @@ class UserRepository:
         query = (
             select(User)
             .filter(getattr(User, attribute) == value)
-            .options(selectinload(getattr(User, relation)))
+            .options(selectinload(getattr(User, relation))) 
         )
         result = await db.execute(query)
         return result.scalar_one_or_none()

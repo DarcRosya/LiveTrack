@@ -5,7 +5,7 @@ from fastapi.security import HTTPBearer
 from src.core.database import DBSession
 from src.services.auth_services import (
     get_current_user,
-    get_current_user_with_tasks,
+    get_current_user_with_tasks_and_their_tags,
     get_current_user_with_habits,
     get_current_user_with_tags,
 )
@@ -29,6 +29,8 @@ router = APIRouter(
     dependencies=[Depends(http_bearer)],
 )
 
+SHOW_LIMIT_MIN = 1
+SHOW_LIMIT_MAX = 3
 
 @router.get(
     "/me",
@@ -49,16 +51,12 @@ async def get_user(
     response_description="List of tasks belonging to the current user"
 )
 async def get_user_tasks(
-    db: DBSession,
-    current_user: User = Depends(get_current_user_with_tasks),
-    limit: int | None = Query(default=None, ge=1, le=3),
+    current_user: User = Depends(get_current_user_with_tasks_and_their_tags),
+    limit: int | None = Query(default=None, ge=SHOW_LIMIT_MIN, le=SHOW_LIMIT_MAX),
 ):
-    return await user_repo.select_relation_with_limit(
-        db=db, 
-        current_user=current_user,
-        relation="tasks",
-        limit=limit,
-    )
+    if limit is not None:
+        return current_user.tasks[:limit]
+    return current_user.tasks
 
 
 @router.get(
@@ -68,16 +66,12 @@ async def get_user_tasks(
     response_description="List of habits belonging to the current user"
 )
 async def get_user_habits(
-    db: DBSession,
     current_user: User = Depends(get_current_user_with_habits),
-    limit: int | None = Query(default=None, ge=1, le=3),
+    limit: int | None = Query(default=None, ge=SHOW_LIMIT_MIN, le=SHOW_LIMIT_MAX),
 ):
-    return await user_repo.select_relation_with_limit(
-        db=db, 
-        current_user=current_user,
-        relation="habits",
-        limit=limit,
-    )
+    if limit is not None:
+        return current_user.habits[:limit]
+    return current_user.habits
 
 
 @router.get(
@@ -87,16 +81,13 @@ async def get_user_habits(
     response_description="List of tags belonging to the current user"
 )
 async def get_user_tags(
-    db: DBSession,
     current_user: User = Depends(get_current_user_with_tags),
-    limit: int | None = Query(default=None, ge=1, le=3),
+    limit: int | None = Query(default=None, ge=SHOW_LIMIT_MIN, le=SHOW_LIMIT_MAX),
 ):
-    return await user_repo.select_relation_with_limit(
-        db=db, 
-        current_user=current_user,
-        relation="tags",
-        limit=limit,
-    )
+    if limit is not None:
+        return current_user.tags[:limit]
+    return current_user.tags
+
 
 @router.patch(
     "/me",
