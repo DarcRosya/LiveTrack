@@ -4,11 +4,9 @@ import enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Enum, ForeignKey
 
-
 from src.core.database import Base
 from src.core.mixins import TimestampMixin
 from src.core.db_types import intpk, str_50, str_256, aware_datetime
-
 
 if TYPE_CHECKING:
     from .user import User
@@ -49,4 +47,4 @@ class Task(Base, TimestampMixin):
     tags: Mapped[List["Tag"]] = relationship(
         back_populates="tasks",
         secondary="task_tags"
-    )
+    )   

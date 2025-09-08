@@ -16,9 +16,9 @@ class UserRepository:
     """
 
     # --- CREATION METHODS ---
-    
+
     async def create(self, db: AsyncSession, user_in: UserCreate) -> User:
-        """Создает нового пользователя в базе данных."""
+        """Creates a new user in the database."""
         user = User(
             username=user_in.username,
             email=user_in.email,
@@ -33,19 +33,19 @@ class UserRepository:
     # --- READING METHODS (GET) ---
 
     async def select_by_id(self, db: AsyncSession, user_id: int) -> User | None:
-        """Получает пользователя по ID (легкая версия)."""
+        """Retrieves a user by ID (light version)."""
         return await self._get_by_attribute(db, "id", user_id)
 
     async def select_by_username(self, db: AsyncSession, username: str) -> User | None:
-        """Получает пользователя по имени пользователя."""
+        """Retrieves a user by username."""
         return await self._get_by_attribute(db, "username", username)
 
     async def select_by_email(self, db: AsyncSession, email: EmailStr) -> User | None:
-        """Получает пользователя по email."""
+        """Receives the user via email."""
         return await self._get_by_attribute(db, "email", email)
     
     async def select_by_username_or_email(self, db: AsyncSession, username: str, email: str) -> User | None:
-        """Получает пользователя по имени ИЛИ по email (для проверки при регистрации)."""
+        """Receives a user by name OR email (for verification during registration)."""
         query = select(User).filter(or_(User.username == username, User.email == email))
         result = await db.execute(query)
         return result.scalar_one_or_none()
@@ -127,5 +127,6 @@ class UserRepository:
         )
         result = await db.execute(query)
         return result.scalar_one_or_none()
+
 
 user_repo = UserRepository()
