@@ -10,8 +10,8 @@ class TaskRead(BaseModel):
     id: int
     title: str
     description: str
-    status: TaskPriority
-    priority: TaskStatus
+    status: TaskStatus
+    priority: TaskPriority
 
     deadline: Optional[datetime]
     completed_at: Optional[datetime] 
@@ -35,8 +35,8 @@ class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
 
-    status: TaskPriority.MEDIUM
-    priority: TaskStatus.PENDING
+    status: TaskStatus = TaskStatus.PENDING
+    priority: TaskPriority = TaskPriority.MEDIUM
 
     deadline: Optional[datetime] = None 
 

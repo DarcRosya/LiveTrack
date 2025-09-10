@@ -7,7 +7,7 @@ from src.api import include_routers
 app = FastAPI(
     title=settings.run.PROJECT_NAME, # <-- Теперь берем из AppSettings
     description="Real-Time Task & Habit Tracker (API)",
-    version="0.3.0",
+    version="0.4.3",
     docs_url="/docs" if settings.debug_mode else None,
     redoc_url="/redoc" if settings.debug_mode else None,
 )

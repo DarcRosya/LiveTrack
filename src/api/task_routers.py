@@ -21,19 +21,30 @@ router = APIRouter(
 SHOW_LIMIT_MIN = 1
 SHOW_LIMIT_MAX = 3
 
-router.post(
+@router.post(
     "",
     response_model=TaskRead,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new task",
-    response_description="Created task"
+    response_description="Created task",
+    responses={
+        status.HTTP_409_CONFLICT: {
+            "description": "Task could not be created due to a conflict."
+        }
+    },
 )
 async def create_task(
     data: TaskCreate,
     db: DBSession,
     current_user: User = Depends(get_current_user),
 ):
-    return await task_repo.create(db=db, user=current_user, create_data=data)
+    create_task = await task_repo.create(db=db, user_id=current_user.id, task_in=data)
+    if not create_task:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A task with similar unique properties might already exist.",
+        )
+    return create_task
 
 
 @router.get(
@@ -56,9 +67,9 @@ async def get_single_task(
     return task
 
 
-router.get(
+@router.get(
     "",
-    response_model=List["TaskRead"],
+    response_model=List[TaskRead],
     summary="Get all tasks of current user",
     response_description="List of tasks",
 )
@@ -89,7 +100,7 @@ async def get_tasks(
     )
 
 
-router.patch(
+@router.patch(
     "/{task_id}",
     response_model=TaskRead,
     summary="Update task by id",
@@ -102,12 +113,15 @@ async def update_task(
     db: DBSession,
     current_user: User = Depends(get_current_user),
 ):
-    return await task_repo.update(
+    updated_task = await task_repo.update(
         db=db, 
         user_id=current_user.id, 
         task_id=task_id, 
-        new_data=task_to_update_data
+        data_to_update=task_to_update_data
     )
+    if not updated_task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    return updated_task
 
 
 @router.delete(
