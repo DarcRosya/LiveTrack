@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPBearer
 
 from src.core.database import DBSession
@@ -137,6 +137,10 @@ async def delete_user_account(
     db: DBSession,
     current_user: User = Depends(get_current_user),
 ):
-
-    await user_repo.delete(db=db, user_to_delete=current_user)
+    was_deleted = await user_repo.delete(db=db, user_id=current_user.id)
+    if not was_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
     return None
