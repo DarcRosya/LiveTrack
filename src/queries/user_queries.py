@@ -105,10 +105,17 @@ class UserRepository:
     
     # --- REMOVAL METHODS ---
 
-    async def delete(self, db: AsyncSession, user_to_delete: User) -> None:
+    async def delete(self, db: AsyncSession, user_id: int) -> bool:
         """Removes the user from the database."""
-        await db.delete(user_to_delete) 
+        query = (
+            delete_query(User)
+            .filter(User.id == user_id)
+        )
+
+        result = await db.execute(query)
         await db.commit()
+
+        return result.rowcount > 0
     
     # --- INTERNAL (PRIVATE) METHODS ---
     
