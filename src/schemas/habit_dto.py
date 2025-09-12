@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from pydantic import BaseModel, computed_field
 from datetime import datetime
 
@@ -29,3 +29,15 @@ class HabitRead(BaseModel):
 
     class Config:
         from_attributes = True # Allows Pydantic to read data from ORM models
+
+
+class HabitCreate(BaseModel):
+    name: str
+    is_active: bool
+    timer_to_notify_in_seconds: int # on client side we will request in minutes afterwards convert in seconds
+
+
+class HabitUpdate(BaseModel):
+    name: Optional[str]
+    is_active: Optional[bool]
+    timer_to_notify_in_seconds: Optional[int]

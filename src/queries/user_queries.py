@@ -100,8 +100,12 @@ class UserRepository:
             .returning(User)
         )
         result = await db.execute(query)
+
+        if result.rowcount == 0:
+            return None
+        
         await db.commit()
-        return result.scalar_one()
+        return self.select_by_id(db=db, user_id=user_to_update.id)
     
     # --- REMOVAL METHODS ---
 

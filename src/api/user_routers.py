@@ -94,7 +94,7 @@ async def get_user_tags(
     response_model=UserRead,
     summary="Update current use (name, email)",
     response_description="Updated user object",
-    responses={404: {"description": "User not found"}}
+    responses={404: {"description": "User not found."}}
 )
 async def update_my_profile(
     user_update_data: UserUpdate,
@@ -106,6 +106,11 @@ async def update_my_profile(
         user_to_update=current_user, 
         new_data=user_update_data
     )
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found during update."
+        )
     return updated_user
 
 
@@ -134,7 +139,7 @@ async def change_my_password(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete the current user's account",
     responses={
-        401: {"description": "Authentication required"},
+        401: {"description": "Authentication required."},
     }
 )
 async def delete_user_account(
@@ -145,6 +150,6 @@ async def delete_user_account(
     if not was_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            detail="User not found."
         )
     return None

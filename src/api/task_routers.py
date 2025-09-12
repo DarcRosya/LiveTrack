@@ -55,7 +55,7 @@ async def create_task(
     "/{task_id}",
     response_model=TaskRead,
     summary="Get a single task by its ID",
-    responses={404: {"description": "Task not found"}}
+    responses={404: {"description": "Task not found."}}
 )
 async def get_single_task(
     task_id: int,
@@ -70,7 +70,7 @@ async def get_single_task(
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found"
+            detail="Task not found."
         )
     return task
 
@@ -113,7 +113,7 @@ async def get_tasks(
     response_model=TaskRead,
     summary="Update a task by ID",
     response_description="Updated task",
-    responses={404: {"description": "Task not found"}}
+    responses={404: {"description": "Task not found."}}
 )
 async def update_task(
     task_id: int,
@@ -130,7 +130,7 @@ async def update_task(
     if not updated_task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Task not found"
+            detail="Task not found."
         )
     return updated_task
 
@@ -140,8 +140,8 @@ async def update_task(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a task by ID",
     response_description="Task deleted",
-    responses={404: {"description": "Task not found"},
-               204: {"description": "Task deleted successfully"}
+    responses={404: {"description": "Task not found."},
+               204: {"description": "Task deleted successfully."}
     }
 )
 async def delete_task(
@@ -157,7 +157,7 @@ async def delete_task(
     if not was_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found"
+            detail="Task not found."
         )
     # If everything went well, FastAPI will automatically return a 204 No Content response,
     # since we specified this in the decorator and are not returning anything.
