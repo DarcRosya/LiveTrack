@@ -102,7 +102,9 @@ async def update_my_profile(
     current_user: User = Depends(get_current_user),
 ):
     updated_user = await user_repo.update(
-        db=db, user_to_update=current_user, new_data=user_update_data
+        db=db, 
+        user_to_update=current_user, 
+        new_data=user_update_data
     )
     return updated_user
 
@@ -118,7 +120,9 @@ async def change_my_password(
     current_user: User = Depends(get_current_user),
 ):
     await change_user_password(
-        db=db, user_to_update=current_user, password_data=password_data
+        db=db, 
+        user_to_update=current_user, 
+        password_data=password_data
     )
     # If the password change is successful, no data needs to be returned,
     # a 204 No Content status is sufficient.

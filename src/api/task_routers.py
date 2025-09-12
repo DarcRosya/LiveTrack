@@ -38,7 +38,11 @@ async def create_task(
     db: DBSession,
     current_user: User = Depends(get_current_user),
 ):
-    create_task = await task_repo.create(db=db, user_id=current_user.id, task_in=data)
+    create_task = await task_repo.create(
+        db=db, 
+        user_id=current_user.id, 
+        task_in=data
+    )
     if not create_task:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -58,7 +62,11 @@ async def get_single_task(
     db: DBSession,
     current_user: User = Depends(get_current_user),
 ):
-    task = await task_repo.get_by_id(db=db, task_id=task_id, user_id=current_user.id)
+    task = await task_repo.select_by_id(
+        db=db, 
+        task_id=task_id, 
+        user_id=current_user.id
+    )
     if not task:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -103,7 +111,7 @@ async def get_tasks(
 @router.patch(
     "/{task_id}",
     response_model=TaskRead,
-    summary="Update task by id",
+    summary="Update a task by ID",
     response_description="Updated task",
     responses={404: {"description": "Task not found"}}
 )
@@ -120,7 +128,10 @@ async def update_task(
         data_to_update=task_to_update_data
     )
     if not updated_task:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Task not found"
+        )
     return updated_task
 
 
@@ -143,13 +154,11 @@ async def delete_task(
         user_id=current_user.id, 
         task_id=task_id
     )
-    
     if not was_deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found"
         )
-    
     # If everything went well, FastAPI will automatically return a 204 No Content response,
     # since we specified this in the decorator and are not returning anything.
     return None
