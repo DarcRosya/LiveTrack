@@ -1,10 +1,12 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPBearer
 
 from src.core.database import DBSession
+from src.models.habit import HabitStatus
 from src.models.user import User
 from src.queries.habit_queries import habit_repo
+from src.schemas.common_enums import HabitSortBy, SortOrder
 from src.schemas.habit_dto import (
     HabitRead,
     HabitCreate,
@@ -78,6 +80,34 @@ async def get_single_habit(
     return habit
 
 
+@router.get(
+    "",
+    response_model=List[HabitRead],
+    summary="Get all habits of current user",
+    response_description="List of habits",
+)
+async def get_habits(
+    db: DBSession,
+    current_user: User = Depends(get_current_user),
+    # Add parameters for filtering
+    status: Optional[HabitStatus] = Query(default=None, description="Filter by active status (new, active, deactivated)"),
+    timer_minutes: Optional[int] = Query(default=None, description="Filter by timer to notify"),
+    # Sorting and limit parameters
+    sort_by: Optional[HabitSortBy] = Query(default=None, description="Sorting field"),
+    sort_order: SortOrder = Query(default=SortOrder.DESC, description="Sorting order"),
+    limit: Optional[int] = Query(default=None, ge=SHOW_LIMIT_MIN, le=SHOW_LIMIT_MAX, description="Record limit"),
+):
+    return await habit_repo.get_multi_for_user(
+        db=db,
+        user_id=current_user.id,
+        status=status,
+        timer_minutes=timer_minutes,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        limit=limit
+    )
+
+
 @router.patch(
     "/{habit_id}",
     response_model=HabitRead,
@@ -107,6 +137,7 @@ async def update_habit(
 
 @router.delete(
     "/{habit_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a habit by ID",
     response_description="Habit deleted",
     responses={404: {"description": "Habit not found."},
