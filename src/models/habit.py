@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 import enum
 
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import ForeignKey, func, case 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -47,7 +47,7 @@ class Habit(Base, TimestampMixin):
         """This part will be translated into SQL for queries."""
         # We use CASE to return 0 for inactive habits in SQL as well.
         return func.floor(
-            func.case(
+            case(
                 (cls.is_active, func.extract('epoch', func.now() - cls.started_at) / 86400),
                 else_=0
             )

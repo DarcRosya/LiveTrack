@@ -5,6 +5,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import User, Task, Habit, Tag
+from src.models.habit import HabitStatus
+from src.schemas.common_enums import HabitSortBy, SortOrder
 from src.schemas.habit_dto import HabitCreate, HabitUpdate
 
 
@@ -37,6 +39,53 @@ class HabitRepository:
 
         result = await db.execute(query)
         return result.scalar_one_or_none()
+
+
+    async def get_multi_for_user(
+            self,
+            db: AsyncSession,
+            user_id: int,
+            status: Optional[HabitStatus] = None,
+            timer_minutes: Optional[int] = None,
+            sort_by: Optional[HabitSortBy] = None,
+            sort_order: SortOrder = SortOrder.DESC,
+            limit: Optional[int] = None,
+    ) -> List[Habit]:
+        """
+        Receives a list of habits for the user with the ability to
+        sort, filter, and limit.
+        """
+
+        query = (select(Habit).filter(Habit.user_id == user_id))
+
+        if status is not None:
+            if status == HabitStatus.DEACTIVATED:
+                query = query.filter(Habit.is_active == False)
+            elif status == HabitStatus.NEW:
+                query = query.filter(and_(Habit.is_active, Habit.duration_days < 3))
+            elif status == HabitStatus.ACTIVE:
+                query = query.filter(and_(Habit.is_active, Habit.duration_days >= 3))
+
+        if timer_minutes is not None:
+            timer_seconds = timer_minutes * 60
+            query = query.filter(Habit.timer_to_notify_in_seconds == timer_seconds)
+
+        if sort_by:
+            sort_column = getattr(Habit, sort_by.value, None)
+
+            if sort_column is not None:
+                if sort_order == SortOrder.DESC:
+                    query = query.order_by(sort_column.desc())
+                else:
+                    query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(Habit.created_at.desc())
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        result = await db.execute(query)
+        return result.scalars().all()
 
 
     async def update(self, db: AsyncSession, user_id: int, habit_id: int, data_to_update: HabitUpdate) -> Task| None:
