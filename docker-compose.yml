@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DB__USER}
+      POSTGRES_PASSWORD: ${DB__PASS}
+      POSTGRES_DB: ${DB__NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB__USER} -d ${DB__NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres # Запустится только после старта postgres
+    restart: unless-stopped
+
+  redis-tls:
+    image: redis:latest
+    container_name: redis-with-tls
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis-tls-certs:/etc/redis/certs
+    restart: unless-stopped
+  
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight
+    ports:
+      - "8001:5540"
+    volumes:
+      - redisinsight_data:/data
+    restart: unless-stopped
+
+  app:
+    build: . # <-- Говорит Docker'у найти Dockerfile в текущей папке и собрать образ
+    container_name: app
+    env_file:
+      - .env # <-- Передает все переменные из .env внутрь контейнера с приложением
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-tls:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:  
+  postgres_data:
+  redisinsight_data:

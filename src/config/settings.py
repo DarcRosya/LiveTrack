@@ -1,5 +1,6 @@
+import ssl
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import EmailStr, SecretStr, PostgresDsn
+from pydantic import EmailStr, Field, SecretStr, PostgresDsn
 
 class DatabaseSettings(BaseSettings):
     """Stores all environment variables related to connecting to the database."""
@@ -44,13 +45,25 @@ class AppSettings(BaseSettings):
     CLIENT_BASE_URL: str = "http://localhost:3000"
 
 
+class RedisSettings(BaseSettings):
+    HOST: str = "redis-tls"
+    PORT: int = 6379
+    
+    SSL_CA_CERTS: str = Field("redis-tls-certs/ca.crt", alias="REDIS_SSL_CA_CERTS")
+    
+    @property
+    def dsn(self) -> str:
+        return f"rediss://{self.HOST}:{self.PORT}"
+
+
 class Settings(BaseSettings):
     """
     The main class aggregator, which is the sole source of configuration for the entire application.
     Pydantic automatically loads and validates settings at startup.
     """
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # env_file=".env",
+        extra="ignore",
         case_sensitive=False,
         env_nested_delimiter="__",
     )
@@ -61,6 +74,7 @@ class Settings(BaseSettings):
     db: DatabaseSettings
     auth: AuthSettings
     mail: EmailSettings
+    redis: RedisSettings = RedisSettings()
 
 # We create a single instance that will be imported throughout the project.
 settings = Settings()

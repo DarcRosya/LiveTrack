@@ -1,0 +1,19 @@
+# Исключаем Git
+.git
+.github
+
+# Исключаем специфичные для IDE файлы
+.vscode
+.idea
+
+# Исключаем локальные виртуальные окружения
+.venv
+venv
+
+# Исключаем Python кеш
+__pycache__
+*.pyc
+
+# Исключаем файлы Docker, которые не нужны внутри образа
+Dockerfile
+docker-compose.yml

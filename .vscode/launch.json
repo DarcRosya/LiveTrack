@@ -1,0 +1,33 @@
+    {
+  "version": "0.5.1",
+  "configurations": [
+    {
+      "name": "Python: Debug FastAPI Server",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn", // Запускаем uvicorn как модуль
+      "args": [
+        "src.main:app", // Путь к твоему FastAPI-приложению
+        "--reload",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env" // Опционально: для переменных окружения
+    },
+    {
+      "name": "Python: Debug ARQ Worker",
+      "type": "python",
+      "request": "launch",
+      "module": "watchfiles", // Запускаем arq как модуль
+      "args": [
+        "arq src.core.worker.WorkerSettings", // <-- Второй - ее аргументы
+        "src" // <-- Папка для отслеживания
+      ],
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env" // Убедись, что воркер тоже видит переменные
+    }
+  ]
+}

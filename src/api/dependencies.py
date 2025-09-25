@@ -8,7 +8,7 @@ from sqlalchemy.exc import ProgrammingError
 
 from src.core.database import get_async_session
 from src.models.user import User
-from src.security.jwt_tokens import ACCESS_TOKEN_TYPE, TOKEN_TYPE_FIELD, decode_jwt
+from src.security.jwt_tokens import TOKEN_TYPE_FIELD, decode_jwt
 from src.security.password_hashing import verify_password, oauth2_scheme
 from src.queries.user_queries import user_repo
 

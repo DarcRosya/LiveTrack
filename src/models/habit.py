@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 import enum
 
-from sqlalchemy import ForeignKey, func, case 
+from sqlalchemy import ForeignKey, String, func, case 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -33,6 +33,8 @@ class Habit(Base, TimestampMixin):
     started_at: Mapped[aware_datetime] = mapped_column(server_default=func.now())
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")
     timer_to_notify_in_seconds: Mapped[int] = mapped_column(default=600)
+
+    job_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
     @hybrid_property
     def duration_days(self) -> int:

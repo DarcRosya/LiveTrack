@@ -1,7 +1,9 @@
 from typing import List, Optional
+from arq import ArqRedis
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPBearer
 
+from src.core.arq_redis import get_arq_redis
 from src.core.database import DBSession
 from src.models.habit import HabitStatus
 from src.models.user import User
@@ -41,12 +43,14 @@ SHOW_LIMIT_MAX = 3
 async def create_habit(
     data: HabitCreate,
     db: DBSession,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    arq_pool: ArqRedis = Depends(get_arq_redis),
 ):
     created_habit = await habit_repo.create(
         db=db, 
         user_id=current_user.id, 
-        habit_in=data
+        habit_in=data,
+        arq_pool=arq_pool,
     )
     if not created_habit:
         raise HTTPException(
@@ -120,12 +124,14 @@ async def update_habit(
     habit_to_update_data: HabitUpdate,
     db: DBSession,
     current_user: User = Depends(get_current_user),
+    arq_pool: ArqRedis = Depends(get_arq_redis),
 ):
     updated_habit = await habit_repo.update(
         db=db,
         user_id=current_user.id,
         habit_id=habit_id,
-        data_to_update=habit_to_update_data
+        data_to_update=habit_to_update_data,
+        arq_pool=arq_pool,
     )
     if not updated_habit:
         raise HTTPException(
@@ -148,11 +154,13 @@ async def delete_habit(
     habit_id: int,
     db: DBSession,
     current_user: User = Depends(get_current_user),
+    arq_pool: ArqRedis = Depends(get_arq_redis),
 ):
     was_deleted = await habit_repo.delete(
         db=db,
         user_id=current_user.id,
         habit_id=habit_id,
+        arq_pool=arq_pool,
     )
     if not was_deleted:
         raise HTTPException(
