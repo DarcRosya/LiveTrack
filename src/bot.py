@@ -1,5 +1,3 @@
-# src/bot.py
-
 import asyncio
 import logging
 import sys

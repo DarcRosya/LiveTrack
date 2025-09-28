@@ -19,7 +19,7 @@ async def validate_user(
     db: AsyncSession = Depends(get_async_session),
 ) -> User:
     try:
-        user = await user_repo.select_by_username(db=db, username=username)
+        user = await user_repo.select_by_username(db=db, username=username.strip())
     except ProgrammingError:
         raise HTTPException(status_code=500, detail="Database schema is not initialized")
 

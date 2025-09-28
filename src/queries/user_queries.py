@@ -11,7 +11,7 @@ from src.security.password_hashing import hash_password, verify_password
 
 class UserRepository:
     """
-    Class repository for all operations with the User model in the database.
+    Class repository for all operations with the __USER__ model in the database.
     Encapsulates all logic for database queries.
     """
 

@@ -1,14 +1,15 @@
 from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import Annotated, List, Optional
+from pydantic import BaseModel, BeforeValidator
 
 from src.models.task import TaskPriority, TaskStatus
+from src.utils.validators import strip_string
 
 from .tag_dto import TagRead 
 
 class TaskRead(BaseModel):
     id: int
-    title: str
+    title: Annotated[str, BeforeValidator(strip_string)]
     description: str
     status: TaskStatus
     priority: TaskPriority
@@ -23,7 +24,7 @@ class TaskRead(BaseModel):
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = None
+    title: Optional[Annotated[str, BeforeValidator(strip_string)]] = None
     description: Optional[str] = None
     status: Optional[TaskStatus] = None
     priority: Optional[TaskPriority] = None
@@ -32,7 +33,7 @@ class TaskUpdate(BaseModel):
 
 
 class TaskCreate(BaseModel):
-    title: str
+    title: Annotated[str, BeforeValidator(strip_string)]
     description: Optional[str] = None
 
     status: TaskStatus = TaskStatus.PENDING

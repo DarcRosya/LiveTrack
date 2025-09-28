@@ -47,8 +47,7 @@ async def send_habit_notification(ctx, habit_id: int, *, job_try: int = 1):
                 return "Notification stopped."
 
             # Send notification via the Telegram service
-            notification_message = f" Heeeey!!!😊 Time to '{habit.name}'!\n \
-            Take care and not forget that after {habit.timer_to_notify_in_seconds} I will text you again😘🤪" 
+            notification_message = f" Heeeey!!!😊 Time to '{habit.name}'!\nTake care and not forget that after {habit.timer_to_notify_in_seconds} seconds I will text you again😘🤪" 
 
             await send_message(
                 chat_id=habit.user.telegram_chat_id, 

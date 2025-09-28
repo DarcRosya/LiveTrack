@@ -34,8 +34,8 @@ async def register(
     db: AsyncSession = Depends(get_async_session),
 ):
     user_in = UserCreate(
-        username=form_data.username,
-        email=form_data.email,
+        username=form_data.username.strip(),
+        email=form_data.email.strip(),
         password=form_data.password,
     )
     return await register_user(db=db, user_in=user_in, background_tasks=background_tasks) 

@@ -1,4 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from typing import Annotated
+from pydantic import BaseModel, BeforeValidator, EmailStr
+
+from src.utils.validators import strip_string
 
 
 class TokenInfo(BaseModel):
@@ -8,6 +11,6 @@ class TokenInfo(BaseModel):
     
 
 class RegisterForm(BaseModel):
-    username: str
-    email: EmailStr
+    username: Annotated[str, BeforeValidator(strip_string)]
+    email: Annotated[EmailStr, BeforeValidator(strip_string)]
     password: str
