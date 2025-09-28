@@ -209,3 +209,5 @@ __marimo__/
 
 # Redis TLS keys
 redis-tls-certs/
+
+readme.md

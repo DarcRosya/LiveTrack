@@ -110,6 +110,34 @@ class HabitRepository:
         return result.scalars().all()
 
 
+    async def get_multi_for_user_by_telegram_id(
+        self, 
+        db: AsyncSession, 
+        chat_id: int,
+        status: HabitStatus = HabitStatus.ACTIVE
+    ) -> List[Habit]:
+        """
+        Получает список привычек для пользователя по его telegram_chat_id
+        с помощью одного JOIN-запроса.
+        """
+        # Мы выбираем привычки (Habit)
+        query = (
+            select(Habit)
+            # Соединяем их с таблицей пользователей (User)
+            .join(User)
+            # И фильтруем по полю telegram_chat_id в таблице User
+            .filter(User.telegram_chat_id == chat_id)
+        )
+
+        if status is not None:
+            if status == HabitStatus.DEACTIVATED:
+                query = query.filter(Habit.is_active == False)
+            elif status == HabitStatus.ACTIVE:
+                query = query.filter(Habit.is_active == True)
+        
+        result = await db.execute(query)
+        return result.scalars().all()
+
     async def update(
             self, 
             db: AsyncSession, 

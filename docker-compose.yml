@@ -26,7 +26,7 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - postgres # Запустится только после старта postgres
+      - postgres # Will only start after postgres has started
     restart: unless-stopped
 
   redis-tls:
@@ -50,10 +50,10 @@ services:
     restart: unless-stopped
 
   app:
-    build: . # <-- Говорит Docker'у найти Dockerfile в текущей папке и собрать образ
+    build: . # <-- Tells Docker to find the Dockerfile in the current folder and build the image
     container_name: app
     env_file:
-      - .env # <-- Передает все переменные из .env внутрь контейнера с приложением
+      - .env # <-- Passes all variables from .env into the container with the application
     ports:
       - "8000:8000"
     volumes:
@@ -64,6 +64,34 @@ services:
       redis-tls:
         condition: service_started
     restart: unless-stopped
+
+  worker:
+    build: .
+    container_name: livetrack_worker
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+    # Worker also needs to wait for the database and Redis to be ready
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-tls:
+        condition: service_started
+    restart: unless-stopped
+    # Key difference: the command it runs
+    command: arq src.core.worker.WorkerSettings
+
+  bot:
+    build: .
+    container_name: livetrack_bot
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app/src
+    restart: unless-stopped
+    command: python -m src.bot
+
 
 volumes:  
   postgres_data:

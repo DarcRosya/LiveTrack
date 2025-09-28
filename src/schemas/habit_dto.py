@@ -33,7 +33,7 @@ class HabitRead(BaseModel):
 
 class HabitCreate(BaseModel):
     name: str
-    is_active: bool
+    is_active: Optional[bool] = True
     timer_to_notify_in_seconds: int # on client side we will request in minutes afterwards convert in seconds
 
 
@@ -41,3 +41,13 @@ class HabitUpdate(BaseModel):
     name: Optional[str] = None
     is_active: Optional[bool] = None
     timer_to_notify_in_seconds: Optional[int] = None
+
+
+class HabitCreateBot(BaseModel):
+    name: str
+    timer_to_notify_in_seconds: int
+    telegram_chat_id: int
+
+
+class HabitDeleteBot(BaseModel):
+    telegram_chat_id: int

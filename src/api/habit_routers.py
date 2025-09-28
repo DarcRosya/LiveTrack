@@ -3,13 +3,17 @@ from arq import ArqRedis
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPBearer
 
+from src.api.bot_dependencies import verify_api_key
 from src.core.arq_redis import get_arq_redis
 from src.core.database import DBSession
 from src.models.habit import HabitStatus
 from src.models.user import User
 from src.queries.habit_queries import habit_repo
+from src.queries.user_queries import user_repo
 from src.schemas.common_enums import HabitSortBy, SortOrder
 from src.schemas.habit_dto import (
+    HabitCreateBot,
+    HabitDeleteBot,
     HabitRead,
     HabitCreate,
     HabitUpdate,
@@ -51,6 +55,41 @@ async def create_habit(
         user_id=current_user.id, 
         habit_in=data,
         arq_pool=arq_pool,
+    )
+    if not created_habit:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A habit with similar unique properties might already exist.",
+        )
+    return created_habit
+
+
+@router.post(
+    "/bot/create",
+    response_model=HabitRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new habit via Telegram Bot",
+    dependencies=[Depends(verify_api_key)],
+)
+async def create_habit_from_bot(
+    data: HabitCreateBot, 
+    db: DBSession,
+    arq_pool: ArqRedis = Depends(get_arq_redis),
+):
+    user = await user_repo.select_by_telegram_id(db=db, chat_id=data.telegram_chat_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this Telegram ID not found. Please register on the website first."
+        )
+    
+    habit_to_create = HabitCreate(
+        name=data.name,
+        timer_to_notify_in_seconds=data.timer_to_notify_in_seconds
+    )
+
+    created_habit = await habit_repo.create(
+        db=db, user_id=user.id, habit_in=habit_to_create, arq_pool=arq_pool
     )
     if not created_habit:
         raise HTTPException(
@@ -112,6 +151,22 @@ async def get_habits(
     )
 
 
+@router.get(
+    "/bot/list/{chat_id}",
+    response_model=List[HabitRead],
+    summary="Get all habits for a user via Telegram Bot",
+    dependencies=[Depends(verify_api_key)],
+)
+async def get_habits_for_bot(chat_id: int, db: DBSession):
+    # Теперь мы делаем один-единственный вызов к новому методу
+    habits = await habit_repo.get_multi_for_user_by_telegram_id(
+        db=db, chat_id=chat_id, status=HabitStatus.ACTIVE
+    )
+    # Проверка на существование пользователя больше не нужна,
+    # так как если пользователя нет, запрос просто вернет пустой список привычек.
+    return habits
+
+
 @router.patch(
     "/{habit_id}",
     response_model=HabitRead,
@@ -167,4 +222,33 @@ async def delete_habit(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Habit not found."
         )
+    return None
+
+
+@router.delete(
+    "/bot/delete/{habit_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a habit via Telegram Bot",
+    dependencies=[Depends(verify_api_key)],
+)
+async def delete_habit_from_bot(
+    habit_id: int,
+    data: HabitDeleteBot,
+    db: DBSession,
+    arq_pool: ArqRedis = Depends(get_arq_redis)
+):
+    user = await user_repo.select_by_telegram_id(db, data.telegram_chat_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User with this Telegram ID not found.")
+
+    habit = await habit_repo.select_by_id(db, user_id=user.id, habit_id=habit_id)
+    if not habit:
+        raise HTTPException(status_code=404, detail="Habit not found or you don't have permission.")
+
+    was_deleted = await habit_repo.delete(
+        db=db, user_id=user.id, habit_id=habit_id, arq_pool=arq_pool
+    )
+    if not was_deleted:
+        raise HTTPException(status_code=404, detail="Habit not found.")
+    
     return None

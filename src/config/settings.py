@@ -54,6 +54,10 @@ class RedisSettings(BaseSettings):
     @property
     def dsn(self) -> str:
         return f"rediss://{self.HOST}:{self.PORT}"
+    
+
+class TelegramBot(BaseSettings):
+    BOT_TOKEN: SecretStr
 
 
 class Settings(BaseSettings):
@@ -75,6 +79,9 @@ class Settings(BaseSettings):
     auth: AuthSettings
     mail: EmailSettings
     redis: RedisSettings = RedisSettings()
+    telegram: TelegramBot
+
+    INTERNAL_API_KEY: SecretStr
 
 # We create a single instance that will be imported throughout the project.
 settings = Settings()

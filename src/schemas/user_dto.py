@@ -29,3 +29,9 @@ class UserUpdate(BaseModel):
 class PasswordChange(BaseModel):
     current_password: str = Field(..., description="Current password")
     new_password: str = Field(..., min_length=8, description="New password (minimum 4 symbols)")
+
+
+class UserLinkTelegram(BaseModel):
+    username: str
+    password: str
+    telegram_chat_id: int

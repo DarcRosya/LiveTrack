@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import User, Task, Habit, Tag 
 from src.schemas.user_dto import UserCreate, UserUpdate
-from src.security.password_hashing import hash_password
+from src.security.password_hashing import hash_password, verify_password
 
 
 class UserRepository:
@@ -29,12 +29,33 @@ class UserRepository:
         await db.commit()
         await db.refresh(user)
         return user
+    
+    
+    async def authenticate_and_link_telegram(
+        self, db: AsyncSession, *, username: str, password: str, telegram_chat_id: int
+    ) -> User | None:
+        """Finds the user, verifies the password, and links the telegram_chat_id."""
+        
+        user = await self.select_by_username(db=db, username=username)
+        
+        if not user or not verify_password(password, user.password_in_hash):
+            return None # Authentication failed
+            
+        user.telegram_chat_id = telegram_chat_id
+        await db.commit()
+        await db.refresh(user)
+        
+        return user
 
     # --- READING METHODS (GET) ---
 
     async def select_by_id(self, db: AsyncSession, user_id: int) -> User | None:
         """Retrieves a user by ID (light version)."""
         return await self._get_by_attribute(db, "id", user_id)
+    
+    async def select_by_telegram_id(self, db: AsyncSession, chat_id: int) -> User | None:
+        """Retrieves a user by telegram chat id."""
+        return await self._get_by_attribute(db, "telegram_chat_id", chat_id)
 
     async def select_by_username(self, db: AsyncSession, username: str) -> User | None:
         """Retrieves a user by username."""

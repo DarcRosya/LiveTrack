@@ -2,6 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPBearer
 
+from src.api.bot_dependencies import verify_api_key
 from src.core.database import DBSession
 from src.services.auth_services import (
     get_current_user,
@@ -43,6 +44,25 @@ async def get_user(
 ):
     return current_user
 
+
+@router.get(
+    "/by-telegram/{chat_id}",
+    response_model=UserRead,
+    summary="Get current user info via TG id",
+    response_description="Current user data",
+    dependencies=[Depends(verify_api_key)]
+)
+async def get_user_by_telegram_id(
+    chat_id: int,
+    db: DBSession,
+):
+    user = await user_repo.select_by_telegram_id(db=db, chat_id=chat_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="User not found during update."
+        )
+    return user
 
 @router.get(
     "/me/tasks",

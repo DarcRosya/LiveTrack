@@ -1,4 +1,5 @@
 from typing import List, TYPE_CHECKING
+from sqlalchemy import BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
@@ -21,6 +22,8 @@ class User(Base, TimestampMixin):
     password_in_hash: Mapped[str]
 
     is_active_account: Mapped[bool] = mapped_column(default=False)
+
+    telegram_chat_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, unique=True)
 
     tasks: Mapped[List["Task"]] = relationship(
         back_populates="user",
